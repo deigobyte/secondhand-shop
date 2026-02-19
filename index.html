@@ -3,747 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>大喵的闲置</title>
+    <title>二手集市 - 每个人都可以开店</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding-bottom: 60px; }
-        #cameraInput, #cameraInputEdit { display: none; }
-        .header { background: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .header h1 { font-size: 18px; font-weight: 600; }
-        .share-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px; }
-        .item-card { background: #fff; border-radius: 12px; overflow: hidden; position: relative; }
-        .item-image { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
-        .item-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: bold; }
-        .item-info { padding: 10px; }
-        .item-price { color: #ff5722; font-size: 18px; font-weight: bold; }
-        .item-name { font-size: 14px; color: #333; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .admin-entry { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; text-align: center; border-top: 1px solid #eee; font-size: 14px; color: #666; }
-        .detail-page, .admin-page, .add-page, .edit-page { display: none; min-height: 100vh; background: #fff; }
-        .detail-page.active, .admin-page.active, .add-page.active, .edit-page.active { display: block; }
-        .detail-header { position: fixed; top: 0; left: 0; right: 0; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); color: #fff; z-index: 100; }
-        .back-btn { font-size: 20px; padding: 4px; }
-        .detail-image { width: 100%; aspect-ratio: 1; object-fit: cover; }
-        .detail-info { padding: 16px; }
-        .detail-price { font-size: 28px; color: #ff5722; font-weight: bold; }
-        .detail-name { font-size: 18px; font-weight: 600; margin-top: 8px; line-height: 1.4; }
-        .detail-meta { display: flex; gap: 12px; margin-top: 12px; color: #999; font-size: 14px; }
-        .detail-desc { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; font-size: 15px; line-height: 1.8; color: #333; }
-        .contact-section { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; border-top: 1px solid #eee; text-align: center; }
-        .contact-btn { background: #07c160; color: #fff; border: none; padding: 14px 48px; border-radius: 24px; font-size: 16px; font-weight: 500; }
-        .wechat-id { margin-top: 8px; font-size: 13px; color: #999; }
-        .admin-header { background: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
-        .add-big-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; margin: 16px; padding: 16px; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 500; }
-        .add-big-btn .icon { font-size: 32px; margin-bottom: 4px; }
-        .stats { display: flex; justify-content: space-around; padding: 16px; background: #fff; margin-bottom: 8px; }
-        .stat-item { text-align: center; }
-        .stat-num { font-size: 24px; font-weight: bold; color: #333; }
-        .stat-label { font-size: 13px; color: #999; margin-top: 2px; }
-        .admin-list { background: #fff; }
-        .admin-section-title { padding: 12px 16px; font-size: 14px; color: #666; background: #f5f5f5; }
-        .admin-item { display: flex; padding: 12px 16px; border-bottom: 1px solid #f5f5f5; gap: 12px; }
-        .admin-item-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
-        .admin-item-info { flex: 1; }
-        .admin-item-name { font-size: 15px; font-weight: 500; }
-        .admin-item-meta { font-size: 13px; color: #999; margin-top: 6px; }
-        .admin-item-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-        .action-btn { padding: 4px 10px; border-radius: 4px; font-size: 12px; border: 1px solid #ddd; background: #fff; }
-        .action-btn.primary { background: #ff5722; color: #fff; border-color: #ff5722; }
-        .action-btn.danger { background: #fff; color: #f44336; border-color: #f44336; }
-        .add-header, .edit-header { background: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
-        .add-form, .edit-form { padding: 16px; }
-        .photo-grid { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .photo-slot { width: 80px; height: 80px; border: 2px dashed #ddd; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #999; cursor: pointer; }
-        .photo-slot .text { font-size: 11px; margin-top: 4px; }
-        .photo-preview { width: 80px; height: 80px; border-radius: 8px; overflow: hidden; position: relative; }
-        .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-preview .remove-btn { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 14px; color: #333; margin-bottom: 8px; }
-        .form-label .required { color: #ff5722; }
-        .form-input { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 15px; }
-        .form-input:focus { outline: none; border-color: #667eea; }
-        .price-input-wrap { display: flex; align-items: center; border: 1px solid #e0e0e0; border-radius: 8px; padding: 0 12px; }
-        .price-input-wrap .currency { color: #ff5722; font-weight: bold; }
-        .price-input-wrap input { flex: 1; border: none; padding: 12px; font-size: 15px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-content { background: #fff; border-radius: 12px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
-        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
-        .modal-input { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 16px; margin-bottom: 20px; text-align: center; }
-        .modal-actions { display: flex; gap: 12px; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 15px; }
-        .modal-btn.cancel { background: #f5f5f5; color: #666; }
-        .modal-btn.confirm { background: #ff5722; color: #fff; }
-        .modal-btn.danger { background: #f44336; color: #fff; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #f5f5f5; 
+            padding-bottom: 20px;
+        }
         
-        /* 聊天窗口样式 */
-        .chat-btn {
+        /* 头部 */
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 24px;
-            font-size: 15px;
-            font-weight: 500;
-            margin-top: 12px;
-            width: 100%;
-        }
-        .chat-window {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-            z-index: 300;
-            max-height: 70vh;
-            flex-direction: column;
-        }
-        .chat-window.active { display: flex; }
-        .chat-header {
             padding: 16px;
-            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .chat-title { font-weight: 600; font-size: 16px; }
-        .chat-close { font-size: 24px; color: #999; cursor: pointer; }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            max-height: 40vh;
+        .header h1 { 
+            font-size: 20px; 
+            font-weight: 600;
+            cursor: pointer;
         }
-        .chat-message {
-            margin-bottom: 12px;
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .nav-btn.primary {
+            background: #fff;
+            color: #764ba2;
+        }
+        .nav-btn.logout {
+            background: rgba(255,100,100,0.3);
+        }
+        .user-name {
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        
+        /* 欢迎横幅 */
+        .welcome-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .welcome-banner h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .welcome-banner p {
+            opacity: 0.9;
+        }
+        
+        /* 内容区 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 24px 0 16px;
+            color: #333;
+        }
+        
+        /* 店铺卡片 */
+        .shop-list {
             display: flex;
             flex-direction: column;
+            gap: 12px;
         }
-        .chat-message.self { align-items: flex-end; }
-        .chat-message.other { align-items: flex-start; }
-        .chat-bubble {
-            max-width: 70%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.5;
+        .shop-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .chat-message.self .chat-bubble {
-            background: #07c160;
-            color: #fff;
-            border-bottom-right-radius: 4px;
+        .shop-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
         }
-        .chat-message.other .chat-bubble {
-            background: #f0f0f0;
+        .shop-icon.large {
+            width: 80px;
+            height: 80px;
+            font-size: 40px;
+        }
+        .shop-info {
+            flex: 1;
+        }
+        .shop-name {
+            font-size: 17px;
+            font-weight: 600;
             color: #333;
-            border-bottom-left-radius: 4px;
+            margin-bottom: 4px;
         }
-        .chat-sender {
-            font-size: 12px;
+        .shop-owner {
+            font-size: 13px;
             color: #999;
             margin-bottom: 4px;
         }
-        .chat-input-area {
-            padding: 12px 16px;
-            border-top: 1px solid #eee;
+        .shop-stats {
+            font-size: 13px;
+            color: #667eea;
+        }
+        .shop-arrow {
+            font-size: 24px;
+            color: #999;
+        }
+        
+        /* 商品网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .item-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .item-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .item-info {
+            padding: 12px;
+        }
+        .item-price {
+            color: #ff5722;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .item-name {
+            font-size: 14px;
+            color: #333;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .item-actions {
             display: flex;
             gap: 8px;
+            margin-top: 8px;
         }
-        .chat-input {
+        .btn-small {
             flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .btn-small.danger {
+            color: #f44336;
+            border-color: #f44336;
+        }
+        
+        /* 表单 */
+        .auth-form, .form-page {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px 24px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .auth-form h2, .form-page h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 14px;
             border: 1px solid #e0e0e0;
-            border-radius: 20px;
-            padding: 10px 16px;
+            border-radius: 10px;
             font-size: 15px;
         }
-        .chat-send {
-            background: #07c160;
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 15px;
-        }
-        .chat-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 299;
-        }
-        .chat-overlay.active { display: block; }
-        .chat-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff5722;
-            color: #fff;
-            font-size: 11px;
-            padding: 2px 6px;
+            padding: 16px;
             border-radius: 10px;
-            display: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
         }
-        .chat-badge.active { display: block; }
+        .btn-primary.large {
+            padding: 16px 32px;
+            width: auto;
+        }
+        .form-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .form-link a {
+            color: #667eea;
+            cursor: pointer;
+        }
+        
+        /* 店铺头部 */
+        .shop-header {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .shop-header .back-btn {
+            background: #f5f5f5;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+        .shop-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        /* 我的店铺 */
+        .my-shop-header {
+            background: #fff;
+            padding: 24px;
+            border-radius: 0 0 24px 24px;
+            margin-bottom: 20px;
+        }
+        .shop-info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        /* 空状态 */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        /* 错误 */
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
-    <input type="file" id="cameraInput" accept="image/*" capture="camera">
-    <input type="file" id="cameraInputEdit" accept="image/*" capture="camera">
-    
-    <div id="homePage" class="home-page">
-        <div class="header"><h1>大喵的闲置</h1><div class="share-btn">↗️</div></div>
-        <div class="grid" id="itemGrid"></div>
-        <div class="admin-entry" onclick="showAdmin()">🔐 管理后台</div>
-    </div>
-    
-    <div id="detailPage" class="detail-page">
-        <div class="detail-header"><span class="back-btn" onclick="backToHome()">←</span><span>商品详情</span><span style="width:28px"></span></div>
-        <img id="detailImage" class="detail-image" src="" alt="">
-        <div class="detail-info">
-            <div class="detail-price" id="detailPrice"></div>
-            <div class="detail-name" id="detailName"></div>
-            <div class="detail-meta"><span id="detailCondition"></span><span id="detailCategory"></span></div>
-            <div class="detail-desc" id="detailDesc"></div>
+    <header class="header" id="header">
+        <div class="header-left">
+            <h1 onclick="showHome()">🏪 二手集市</h1>
         </div>
-        <div style="height:100px"></div>
-        <div class="contact-section">
-            <button class="contact-btn" onclick="copyWechat()">📱 加微信购买</button>
-            <div class="wechat-id">微信号：damao2024（点击复制）</div>
-            <button class="chat-btn" onclick="openChat()">💬 在线询价</button>
+        <div class="header-right">
+            <!-- 动态渲染 -->
         </div>
-    </div>
+    </header>
     
-    <!-- 聊天窗口 -->
-    <div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <span class="chat-title">💬 询问商品</span>
-            <span class="chat-close" onclick="closeChat()">×</span>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="chat-message other">
-                <span class="chat-sender">卖家</span>
-                <div class="chat-bubble">你好！对这个商品感兴趣吗？有什么可以帮你的？</div>
-            </div>
-        </div>
-        
-        <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." onkeypress="if(event.key==='Enter')sendChatMessage()">
-            <button class="chat-send" onclick="sendChatMessage()">发送</button>
-        </div>
-    </div>
+    <mdiv id="mainContent">
+        <!-- 动态内容 -->
+    </main>
     
-    <div id="adminPage" class="admin-page">
-        <div class="admin-header"><span>管理后台</span><span onclick="backToHome()" style="color:#666">退出</span></div>
-        <div class="add-big-btn" onclick="showAddPage()"><div class="icon">📷</div><div>拍个照上架商品</div></div>
-        <div class="stats">
-            <div class="stat-item"><div class="stat-num" id="activeCount">0</div><div class="stat-label">在售</div></div>
-            <div class="stat-item"><div class="stat-num" id="soldCount">0</div><div class="stat-label">已售</div></div>
-        </div>
-        <div class="admin-list" id="adminList"></div>
-        
-        <!-- 消息列表 -->
-        <div class="admin-section-title" style="margin-top: 20px;">💬 买家消息</div>
-        <div class="admin-list" id="messageList">
-            <div style="padding: 20px; text-align: center; color: #999;">加载中...</div>
-        </div>
-    </div>
-    
-    <div id="addPage" class="add-page">
-        <div class="add-header"><span onclick="backToAdmin()">取消</span><span style="font-weight:600">发布商品</span><span style="color:#07c160;font-weight:500" onclick="submitItem()">发布</span></div>
-        <div class="add-form">
-            <div class="photo-grid" id="addPhotoGrid"><div class="photo-slot" onclick="triggerCamera()">📷<span class="text">拍照</span></div></div>
-            <div class="form-group"><label class="form-label">价格 <span class="required">*</span></label><div class="price-input-wrap"><span class="currency">¥</span><input type="number" id="inputPrice" placeholder="输入价格"></div></div>
-            <div class="form-group"><label class="form-label">名称 <span class="required">*</span></label><input type="text" class="form-input" id="inputName" placeholder="输入商品名称"></div>
-            <div class="form-group"><label class="form-label">成色</label><select class="form-input" id="inputCondition"><option>全新未拆封</option><option>99新</option><option selected>95新</option><option>9成新</option><option>8成新</option><option>使用过</option></select></div>
-            <div class="form-group"><label class="form-label">分类</label><select class="form-input" id="inputCategory"><option value="electronics">📱 电子产品</option><option value="furniture">🪑 家具</option><option value="books">📚 书籍</option><option value="clothing">👕 服饰</option><option value="others">📦 其他</option></select></div>
-            <div class="form-group"><label class="form-label">描述（可选）</label><textarea class="form-input" id="inputDesc" rows="3" placeholder="简单描述一下商品..."></textarea></div>
-        </div>
-        <div style="height:80px"></div>
-    </div>
-    
-    <div id="editPage" class="edit-page">
-        <div class="edit-header"><span onclick="backToAdmin()">取消</span><span style="font-weight:600">编辑商品</span><span style="color:#07c160;font-weight:500" onclick="saveEditItem()">保存</span></div>
-        <div class="edit-form">
-            <div class="photo-grid" id="editPhotoGrid"><div class="photo-slot" onclick="triggerCameraEdit()">📷<span class="text">拍照</span></div></div>
-            <div class="form-group"><label class="form-label">价格 <span class="required">*</span></label><div class="price-input-wrap"><span class="currency">¥</span><input type="number" id="editPrice" placeholder="输入价格"></div></div>
-            <div class="form-group"><label class="form-label">名称 <span class="required">*</span></label><input type="text" class="form-input" id="editName" placeholder="输入商品名称"></div>
-            <div class="form-group"><label class="form-label">成色</label><select class="form-input" id="editCondition"><option>全新未拆封</option><option>99新</option><option>95新</option><option>9成新</option><option>8成新</option><option>使用过</option></select></div>
-            <div class="form-group"><label class="form-label">分类</label><select class="form-input" id="editCategory"><option value="electronics">📱 电子产品</option><option value="furniture">🪑 家具</option><option value="books">📚 书籍</option><option value="clothing">👕 服饰</option><option value="others">📦 其他</option></select></div>
-            <div class="form-group"><label class="form-label">描述（可选）</label><textarea class="form-input" id="editDesc" rows="3" placeholder="简单描述一下商品..."></textarea></div>
-        </div>
-        <div style="height:80px"></div>
-    </div>
-    
-    <div id="priceModal" class="modal">
-        <div class="modal-content"><div class="modal-title">修改价格</div><input type="number" class="modal-input" id="modalPrice" placeholder="输入新价格"><div class="modal-actions"><button class="modal-btn cancel" onclick="closeModal()">取消</button><button class="modal-btn confirm" onclick="confirmPrice()">确认</button></div></div>
-    </div>
-    
-    <div id="deleteModal" class="modal">
-        <div class="modal-content"><div class="modal-title">确认删除？</div><p style="color:#666;margin-bottom:20px">删除后无法恢复</p><div class="modal-actions"><button class="modal-btn cancel" onclick="closeDeleteModal()">取消</button><button class="modal-btn danger" onclick="confirmDelete()">删除</button></div></div>
-    </div>
-    
-    <div id="passwordModal" class="modal">
-        <div class="modal-content"><div class="modal-title">🔐 请输入管理密码</div><input type="password" class="modal-input" id="adminPassword" placeholder="密码"><div class="modal-actions"><button class="modal-btn cancel" onclick="closePasswordModal()">取消</button><button class="modal-btn confirm" onclick="checkPassword()">进入</button></div></div>
-    </div>
-
-    <script>
-        const API_BASE = '/api';
-        let items = [], editingId = null, deletingId = null, tempPhotos = [], tempPhotosEdit = [];
-        let currentItemId = null; // 当前查看的商品ID（用于聊天）
-        let currentBuyerId = null; // 当前买家ID
-        
-        // 生成或获取买家ID
-        function getBuyerId() {
-            if (!currentBuyerId) {
-                currentBuyerId = localStorage.getItem('buyerId');
-                if (!currentBuyerId) {
-                    currentBuyerId = 'buyer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('buyerId', currentBuyerId);
-                }
-            }
-            return currentBuyerId;
-        }
-        
-        // 打开聊天窗口
-        async function openChat() {
-            if (!currentItemId) return;
-            document.getElementById('chatOverlay').classList.add('active');
-            document.getElementById('chatWindow').classList.add('active');
-            document.getElementById('chatInput').focus();
-            await loadChatMessages();
-        }
-        
-        // 关闭聊天窗口
-        function closeChat() {
-            document.getElementById('chatOverlay').classList.remove('active');
-            document.getElementById('chatWindow').classList.remove('active');
-        }
-        
-        // 加载聊天记录
-        async function loadChatMessages() {
-            if (!currentItemId) return;
-            try {
-                const buyerId = getBuyerId();
-                const response = await fetch(`${API_BASE}/chat?itemId=${currentItemId}&buyerId=${buyerId}`);
-                const messages = await response.json();
-                renderChatMessages(messages);
-            } catch (error) {
-                console.error('加载聊天记录失败:', error);
-            }
-        }
-        
-        // 渲染聊天消息
-        function renderChatMessages(messages) {
-            const container = document.getElementById('chatMessages');
-            const buyerId = getBuyerId();
-            
-            if (messages.length === 0) {
-                container.innerHTML = `
-                    <div class="chat-message other">
-                        <span class="chat-sender">卖家</span>
-                        <div class="chat-bubble">你好！对这个商品感兴趣吗？有什么可以帮你的？</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = messages.map(msg => {
-                const isSelf = msg.buyerId === buyerId && !msg.isSeller;
-                return `
-                    <div class="chat-message ${isSelf ? 'self' : 'other'}">
-                        <span class="chat-sender">${msg.buyerName || (msg.isSeller ? '卖家' : '买家')}</span>
-                        <div class="chat-bubble">${escapeHtml(msg.message)}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            // 滚动到底部
-            container.scrollTop = container.scrollHeight;
-        }
-        
-        // 发送消息
-        async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message || !currentItemId) return;
-            
-            const buyerId = getBuyerId();
-            
-            // 先显示在界面上
-            const container = document.getElementById('chatMessages');
-            container.innerHTML += `
-                <div class="chat-message self">
-                    <span class="chat-sender">我</span>
-                    <div class="chat-bubble">${escapeHtml(message)}</div>
-                </div>
-            `;
-            container.scrollTop = container.scrollHeight;
-            input.value = '';
-            
-            // 发送到服务器
-            try {
-                await fetch(`${API_BASE}/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        itemId: currentItemId,
-                        buyerId: buyerId,
-                        buyerName: '买家',
-                        message: message,
-                        isSeller: false
-                    })
-                });
-            } catch (error) {
-                console.error('发送消息失败:', error);
-            }
-        }
-        
-        // HTML 转义防止 XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        document.getElementById('cameraInput').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(event) { tempPhotos.push(event.target.result); renderPhotoGrid('addPhotoGrid', tempPhotos, false); };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-        
-        document.getElementById('cameraInputEdit').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(event) { tempPhotosEdit.push(event.target.result); renderPhotoGrid('editPhotoGrid', tempPhotosEdit, true); };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-        
-        function triggerCamera() { document.getElementById('cameraInput').click(); }
-        function triggerCameraEdit() { document.getElementById('cameraInputEdit').click(); }
-        
-        function renderPhotoGrid(gridId, photos, isEdit) {
-            const grid = document.getElementById(gridId);
-            let html = '';
-            photos.forEach((photo, index) => { html += `<div class="photo-preview"><img src="${photo}"><div class="remove-btn" onclick="removePhoto(${index}, ${isEdit})">×</div></div>`; });
-            html += `<div class="photo-slot" onclick="${isEdit ? 'triggerCameraEdit()' : 'triggerCamera()'}">📷<span class="text">拍照</span></div>`;
-            grid.innerHTML = html;
-        }
-        
-        function removePhoto(index, isEdit) { if (isEdit) { tempPhotosEdit.splice(index, 1); renderPhotoGrid('editPhotoGrid', tempPhotosEdit, true); } else { tempPhotos.splice(index, 1); renderPhotoGrid('addPhotoGrid', tempPhotos, false); } }
-        
-        async function loadItems() {
-            try { const response = await fetch(`${API_BASE}/items`); items = await response.json(); renderHome(); } catch (error) { console.error('加载失败:', error); }
-        }
-        
-        function renderHome() {
-            const grid = document.getElementById('itemGrid');
-            grid.innerHTML = items.map(item => `<div class="item-card" onclick="showDetail('${item._id}')"><img class="item-image" src="${item.image}" alt="">${item.status === 'sold' ? '<div class="item-overlay">已售</div>' : ''}<div class="item-info"><div class="item-price">¥${item.price}</div><div class="item-name">${item.name}</div></div></div>`).join('');
-        }
-        
-        function showDetail(id) {
-            const item = items.find(i => i._id === id); if (!item) return;
-            currentItemId = id; // 设置当前商品ID用于聊天
-            document.getElementById('detailImage').src = item.image;
-            document.getElementById('detailPrice').textContent = `¥${item.price}${item.status === 'sold' ? ' (已售)' : ''}`;
-            document.getElementById('detailName').textContent = item.name;
-            document.getElementById('detailCondition').textContent = item.condition;
-            document.getElementById('detailCategory').textContent = item.category;
-            document.getElementById('detailDesc').textContent = item.desc;
-            document.getElementById('homePage').style.display = 'none';
-            document.getElementById('detailPage').classList.add('active');
-        }
-        
-        function backToHome() { document.getElementById('homePage').style.display = 'block'; document.getElementById('detailPage').classList.remove('active'); document.getElementById('adminPage').classList.remove('active'); document.getElementById('addPage').classList.remove('active'); document.getElementById('editPage').classList.remove('active'); }
-        function backToAdmin() { document.getElementById('addPage').classList.remove('active'); document.getElementById('editPage').classList.remove('active'); document.getElementById('adminPage').classList.add('active'); renderAdmin(); }
-        function copyWechat() { alert('微信号已复制：damao2024'); }
-        
-        // 检查登录状态（1小时内有效）
-        function isLoggedIn() {
-            const loginTime = localStorage.getItem('adminLogin');
-            if (loginTime) {
-                const oneHour = 60 * 60 * 1000;
-                if (Date.now() - parseInt(loginTime) < oneHour) return true;
-                localStorage.removeItem('adminLogin');
-            }
-            return false;
-        }
-        
-        function setLoggedIn() { localStorage.setItem('adminLogin', Date.now()); }
-        
-        function showAdmin() { 
-            if (isLoggedIn()) {
-                document.getElementById('homePage').style.display = 'none';
-                document.getElementById('adminPage').classList.add('active');
-                renderAdmin();
-            } else {
-                document.getElementById('passwordModal').classList.add('active');
-            }
-        }
-        function closePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
-        
-        function checkPassword() {
-            if (document.getElementById('adminPassword').value === '123456') {
-                setLoggedIn();
-                document.getElementById('passwordModal').classList.remove('active');
-                document.getElementById('homePage').style.display = 'none';
-                document.getElementById('adminPage').classList.add('active');
-                document.getElementById('adminPassword').value = '';
-                renderAdmin();
-            } else { alert('密码错误'); }
-        }
-        
-        function renderAdmin() {
-            const activeItems = items.filter(i => i.status === 'active'), soldItems = items.filter(i => i.status === 'sold');
-            document.getElementById('activeCount').textContent = activeItems.length;
-            document.getElementById('soldCount').textContent = soldItems.length;
-            const list = document.getElementById('adminList');
-            list.innerHTML = `<div class="admin-section-title">在售商品 (${activeItems.length})</div>${activeItems.map(item => renderAdminItem(item)).join('')}${soldItems.length > 0 ? `<div class="admin-section-title">已售出 (${soldItems.length})</div>${soldItems.map(item => renderAdminItem(item)).join('')}` : ''}`;
-            
-            // 加载消息列表
-            loadAdminMessages();
-        }
-        
-        // 加载所有消息（管理后台用）
-        async function loadAdminMessages() {
-            try {
-                const response = await fetch(`${API_BASE}/chat`);
-                const messages = await response.json();
-                
-                // 按商品和买家分组
-                const grouped = {};
-                messages.forEach(msg => {
-                    const key = `${msg.itemId}_${msg.buyerId}`;
-                    if (!grouped[key]) {
-                        grouped[key] = {
-                            itemId: msg.itemId,
-                            buyerId: msg.buyerId,
-                            buyerName: msg.buyerName,
-                            messages: [],
-                            unread: 0
-                        };
-                    }
-                    grouped[key].messages.push(msg);
-                    if (!msg.isSeller && !msg.read) {
-                        grouped[key].unread++;
-                    }
-                });
-                
-                renderMessageList(Object.values(grouped));
-            } catch (error) {
-                console.error('加载消息失败:', error);
-                document.getElementById('messageList').innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">加载失败</div>';
-            }
-        }
-        
-        // 渲染消息列表
-        function renderMessageList(groups) {
-            const container = document.getElementById('messageList');
-            
-            if (groups.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">暂无消息</div>';
-                return;
-            }
-            
-            container.innerHTML = groups.map(group => {
-                const lastMsg = group.messages[group.messages.length - 1];
-                const item = items.find(i => i._id === group.itemId);
-                const itemName = item ? item.name : '未知商品';
-                
-                return `
-                    <div class="admin-item" onclick="showChatDetail('${group.itemId}', '${group.buyerId}')">
-                        <div class="admin-item-info" style="flex: 1;">
-                            <div class="admin-item-name">${group.buyerName} <span style="color: #999; font-size: 12px;">咨询 ${itemName}</span></div>
-                            <div class="admin-item-meta">${lastMsg ? lastMsg.message.substring(0, 30) + '...' : ''}</div>
-                            <div style="margin-top: 8px;">
-                                ${group.unread > 0 ? `<span style="background: #ff5722; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px;">${group.unread} 条新消息</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        // 查看聊天详情（管理后台）
-        async function showChatDetail(itemId, buyerId) {
-            currentItemId = itemId;
-            currentBuyerId = buyerId;
-            
-            // 创建卖家聊天窗口
-            const chatWindow = document.createElement('div');
-            chatWindow.id = 'sellerChatWindow';
-            chatWindow.className = 'chat-window active';
-            chatWindow.style.display = 'flex';
-            chatWindow.style.zIndex = '400';
-            chatWindow.innerHTML = `
-                <div class="chat-header">
-                    <span class="chat-title">💬 与买家对话</span>
-                    <span class="chat-close" onclick="closeSellerChat()">×</span>
-                </div>
-                <div class="chat-messages" id="sellerChatMessages"></div>
-                <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="sellerChatInput" placeholder="回复买家..." onkeypress="if(event.key==='Enter')sendSellerMessage()">
-                    <button class="chat-send" onclick="sendSellerMessage()">发送</button>
-                </div>
-            `;
-            
-            document.body.appendChild(chatWindow);
-            
-            // 加载聊天记录
-            await loadSellerChatMessages(itemId, buyerId);
-            
-            // 标记已读
-            await fetch(`${API_BASE}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'markRead', itemId, buyerId })
-            });
-            
-            // 刷新消息列表
-            loadAdminMessages();
-        }
-        
-        function closeSellerChat() {
-            const chatWindow = document.getElementById('sellerChatWindow');
-            if (chatWindow) chatWindow.remove();
-        }
-        
-        async function loadSellerChatMessages(itemId, buyerId) {
-            try {
-                const response = await fetch(`${API_BASE}/chat?itemId=${itemId}&buyerId=${buyerId}`);
-                const messages = await response.json();
-                
-                const container = document.getElementById('sellerChatMessages');
-                container.innerHTML = messages.map(msg => `
-                    <div class="chat-message ${msg.isSeller ? 'self' : 'other'}">
-                        <span class="chat-sender">${msg.isSeller ? '我' : msg.buyerName}</span>
-                        <div class="chat-bubble">${escapeHtml(msg.message)}</div>
-                    </div>
-                `).join('');
-                
-                container.scrollTop = container.scrollHeight;
-            } catch (error) {
-                console.error('加载聊天记录失败:', error);
-            }
-        }
-        
-        async function sendSellerMessage() {
-            const input = document.getElementById('sellerChatInput');
-            const message = input.value.trim();
-            if (!message || !currentItemId || !currentBuyerId) return;
-            
-            // 显示在界面上
-            const container = document.getElementById('sellerChatMessages');
-            container.innerHTML += `
-                <div class="chat-message self">
-                    <span class="chat-sender">我</span>
-                    <div class="chat-bubble">${escapeHtml(message)}</div>
-                </div>
-            `;
-            container.scrollTop = container.scrollHeight;
-            input.value = '';
-            
-            // 发送到服务器
-            try {
-                await fetch(`${API_BASE}/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        itemId: currentItemId,
-                        buyerId: currentBuyerId,
-                        message: message,
-                        isSeller: true
-                    })
-                });
-            } catch (error) {
-                console.error('发送消息失败:', error);
-            }
-        }
-        
-        function renderAdminItem(item) {
-            return `<div class="admin-item"><img class="admin-item-img" src="${item.image}"><div class="admin-item-info"><div class="admin-item-name">${item.name}</div><div class="admin-item-meta">¥${item.price} · ${item.condition} · ${item.category}</div><div class="admin-item-actions"><button class="action-btn" onclick="editItem('${item._id}')">编辑</button><button class="action-btn primary" onclick="quickEditPrice('${item._id}')">改价</button>${item.status === 'active' ? `<button class="action-btn" onclick="markSold('${item._id}')">标记已售</button>` : `<button class="action-btn" onclick="markActive('${item._id}')">重新上架</button>`}<button class="action-btn danger" onclick="deleteItem('${item._id}')">删除</button></div></div></div>`;
-        }
-        
-        function editItem(id) {
-            const item = items.find(i => i._id === id); if (!item) return;
-            editingId = id; tempPhotosEdit = [item.image];
-            document.getElementById('editPrice').value = item.price;
-            document.getElementById('editName').value = item.name;
-            document.getElementById('editCondition').value = item.condition;
-            document.getElementById('editCategory').value = item.categoryValue || 'electronics';
-            document.getElementById('editDesc').value = item.desc || '';
-            renderPhotoGrid('editPhotoGrid', tempPhotosEdit, true);
-            document.getElementById('adminPage').classList.remove('active');
-            document.getElementById('editPage').classList.add('active');
-        }
-        
-        async function saveEditItem() {
-            const price = document.getElementById('editPrice').value, name = document.getElementById('editName').value, condition = document.getElementById('editCondition').value;
-            const category = document.getElementById('editCategory'), categoryValue = category.value, categoryText = category.options[category.selectedIndex].text, desc = document.getElementById('editDesc').value;
-            if (!price || !name) { alert('请填写价格和名称'); return; }
-            try {
-                const response = await fetch(`${API_BASE}/items`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingId, price: parseInt(price), name, condition, category: categoryText, categoryValue, desc, image: tempPhotosEdit[0] || items.find(i => i._id === editingId).image }) });
-                if (response.ok) { await loadItems(); alert('商品已更新！'); backToAdmin(); }
-            } catch (error) { alert('保存失败，请重试'); }
-        }
-        
-        function quickEditPrice(id) { editingId = id; document.getElementById('modalPrice').value = items.find(i => i._id === id).price; document.getElementById('priceModal').classList.add('active'); }
-        function closeModal() { document.getElementById('priceModal').classList.remove('active'); }
-        
-        async function confirmPrice() {
-            const newPrice = document.getElementById('modalPrice').value;
-            if (newPrice && editingId) {
-                try { const item = items.find(i => i._id === editingId); await fetch(`${API_BASE}/items`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...item, id: editingId, price: parseInt(newPrice) }) }); await loadItems(); renderAdmin(); closeModal(); alert('价格已修改'); } catch (error) { alert('修改失败'); }
-            }
-        }
-        
-        async function markSold(id) {
-            if (confirm('确定标记为已售出？')) {
-                try { const item = items.find(i => i._id === id); await fetch(`${API_BASE}/items`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...item, id, status: 'sold' }) }); await loadItems(); renderAdmin(); } catch (error) { alert('操作失败'); }
-            }
-        }
-        
-        async function markActive(id) {
-            try { const item = items.find(i => i._id === id); await fetch(`${API_BASE}/items`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...item, id, status: 'active' }) }); await loadItems(); renderAdmin(); } catch (error) { alert('操作失败'); }
-        }
-        
-        function deleteItem(id) { deletingId = id; document.getElementById('deleteModal').classList.add('active'); }
-        function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); }
-        
-        async function confirmDelete() {
-            if (deletingId) {
-                try { await fetch(`${API_BASE}/items?id=${deletingId}`, { method: 'DELETE' }); await loadItems(); renderAdmin(); closeDeleteModal(); alert('商品已删除'); } catch (error) { alert('删除失败'); }
-            }
-        }
-        
-        function showAddPage() {
-            tempPhotos = []; renderPhotoGrid('addPhotoGrid', tempPhotos, false);
-            document.getElementById('inputPrice').value = ''; document.getElementById('inputName').value = '';
-            document.getElementById('inputCondition').selectedIndex = 2; document.getElementById('inputCategory').selectedIndex = 0; document.getElementById('inputDesc').value = '';
-            document.getElementById('adminPage').classList.remove('active'); document.getElementById('addPage').classList.add('active');
-        }
-        
-        async function submitItem() {
-            const price = document.getElementById('inputPrice').value, name = document.getElementById('inputName').value, condition = document.getElementById('inputCondition').value;
-            const category = document.getElementById('inputCategory'), categoryValue = category.value, categoryText = category.options[category.selectedIndex].text, desc = document.getElementById('inputDesc').value;
-            if (!price || !name) { alert('请填写价格和名称'); return; }
-            try {
-                const response = await fetch(`${API_BASE}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price: parseInt(price), condition, category: categoryText, categoryValue, desc, image: tempPhotos[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop', status: 'active' }) });
-                if (response.ok) { await loadItems(); alert('商品发布成功！'); backToAdmin(); }
-            } catch (error) { alert('发布失败，请重试'); }
-        }
-        
-        loadItems();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
