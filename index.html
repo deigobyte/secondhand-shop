@@ -758,8 +758,9 @@
     </div>
 
     <script>
-        // Mock 数据
-        let items = [
+        // 从 localStorage 加载数据，如果没有则使用默认数据
+        const STORAGE_KEY = 'secondhand_items';
+        const DEFAULT_ITEMS = [
             {
                 id: 1,
                 name: 'iPhone 12 Pro 手机壳套装',
@@ -832,6 +833,31 @@
         let deletingId = null;
         let tempPhotos = [];
         let tempPhotosEdit = [];
+        
+        // 保存数据到 localStorage
+        function saveItems() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            } catch (e) {
+                console.error('保存失败:', e);
+            }
+        }
+        
+        // 从 localStorage 加载数据
+        function loadItems() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('加载失败:', e);
+            }
+            return null;
+        }
+        
+        // 初始化数据
+        let items = loadItems() || DEFAULT_ITEMS;
         
         // 初始化相机输入监听
         document.getElementById('cameraInput').addEventListener('change', function(e) {
@@ -1065,6 +1091,8 @@
                 item.desc = desc || '暂无描述';
                 item.image = tempPhotosEdit[0] || item.image;
                 
+                saveItems(); // 保存到本地存储
+                
                 alert('商品已更新！');
                 backToAdmin();
                 renderHome();
@@ -1088,6 +1116,7 @@
             if (newPrice && editingId) {
                 const item = items.find(i => i.id === editingId);
                 item.price = parseInt(newPrice);
+                saveItems(); // 保存到本地存储
                 renderAdmin();
                 renderHome();
                 closeModal();
@@ -1100,6 +1129,7 @@
             if (confirm('确定标记为已售出？')) {
                 const item = items.find(i => i.id === id);
                 item.status = 'sold';
+                saveItems(); // 保存到本地存储
                 renderAdmin();
                 renderHome();
             }
@@ -1109,6 +1139,7 @@
         function markActive(id) {
             const item = items.find(i => i.id === id);
             item.status = 'active';
+            saveItems(); // 保存到本地存储
             renderAdmin();
             renderHome();
         }
@@ -1126,6 +1157,7 @@
         function confirmDelete() {
             if (deletingId) {
                 items = items.filter(i => i.id !== deletingId);
+                saveItems(); // 保存到本地存储
                 renderAdmin();
                 renderHome();
                 closeDeleteModal();
@@ -1177,6 +1209,8 @@
             };
             
             items.unshift(newItem);
+            
+            saveItems(); // 保存到本地存储
             
             alert('商品发布成功！');
             backToAdmin();
