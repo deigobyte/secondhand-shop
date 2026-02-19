@@ -1,59 +1,44 @@
-// 纯内存存储
-let memoryStore = [
-  {
-    _id: '1',
-    name: 'iPhone 12 Pro 手机壳套装',
-    price: 299,
-    condition: '95新',
-    category: '电子产品',
-    categoryValue: 'electronics',
-    desc: '买了没多久，换手机了所以出掉。包含3个壳子+贴膜，原价599买的。',
-    image: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=400&h=400&fit=crop',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '2',
-    name: '宜家书桌 白色',
-    price: 150,
-    condition: '8成新',
-    category: '家具',
-    categoryValue: 'furniture',
-    desc: '尺寸 120x60cm，用了两年，搬家带不走。',
-    image: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400&h=400&fit=crop',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '3',
-    name: 'JavaScript高级程序设计',
-    price: 50,
-    condition: '9成新',
-    category: '书籍',
-    categoryValue: 'books',
-    desc: '就翻过几次，几乎全新。',
-    image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
-    status: 'sold',
-    createdAt: new Date().toISOString()
-  }
-];
+// Upstash Redis REST API 直接调用
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+async function redisGet(key) {
+  const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+  });
+  const data = await res.json();
+  return data.result ? JSON.parse(data.result) : [];
+}
+
+async function redisSet(key, value) {
+  await fetch(`${UPSTASH_URL}/set/${key}`, {
+    method: 'POST',
+    headers: { 
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ value: JSON.stringify(value) })
+  });
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
     switch (req.method) {
-      case 'GET':
-        return res.status(200).json(memoryStore);
+      case 'GET': {
+        const items = await redisGet('items') || [];
+        return res.status(200).json(items);
+      }
 
-      case 'POST':
+      case 'POST': {
         const { name, price, condition, category, categoryValue, desc, image, status } = req.body;
+        const items = await redisGet('items') || [];
+        
         const newItem = {
           _id: Date.now().toString(),
           name,
@@ -64,28 +49,34 @@ module.exports = async (req, res) => {
           desc,
           image,
           status: status || 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: new Date().toISOString()
         };
-        memoryStore.unshift(newItem);
+        
+        items.unshift(newItem);
+        await redisSet('items', items);
+        
         return res.status(201).json(newItem);
+      }
 
-      case 'PUT':
+      case 'PUT': {
         const { id, ...updateData } = req.body;
-        const itemIndex = memoryStore.findIndex(i => i._id === id);
-        if (itemIndex >= 0) {
-          memoryStore[itemIndex] = { 
-            ...memoryStore[itemIndex], 
-            ...updateData, 
-            updatedAt: new Date().toISOString() 
-          };
+        let items = await redisGet('items') || [];
+        
+        const idx = items.findIndex(i => i._id === id);
+        if (idx >= 0) {
+          items[idx] = { ...items[idx], ...updateData, updatedAt: new Date().toISOString() };
+          await redisSet('items', items);
         }
         return res.status(200).json({ success: true });
+      }
 
-      case 'DELETE':
-        const { id: deleteId } = req.query;
-        memoryStore = memoryStore.filter(i => i._id !== deleteId);
+      case 'DELETE': {
+        const { id } = req.query;
+        let items = await redisGet('items') || [];
+        items = items.filter(i => i._id !== id);
+        await redisSet('items', items);
         return res.status(200).json({ success: true });
+      }
 
       default:
         return res.status(405).json({ error: 'Method not allowed' });
