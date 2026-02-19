@@ -1,19 +1,25 @@
-const { MongoClient, ObjectId } = require('mongodb');
+const { Redis } = require('@upstash/redis');
 
-const uri = process.env.MONGODB_URI;
+// 内存存储作为 fallback
+let memoryStore = [];
 
-// 简化的连接选项
-const client = new MongoClient(uri);
+// 检查是否有 Redis 配置
+const hasRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
-let cachedDb = null;
-
-async function connectToDatabase() {
-  if (cachedDb) return cachedDb;
-  await client.connect();
-  const db = client.db('secondhand');
-  cachedDb = db;
-  return db;
+// 如果有配置就创建 Redis 客户端
+let redis = null;
+if (hasRedis) {
+  try {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  } catch (e) {
+    console.error('Redis init error:', e);
+  }
 }
+
+const ITEMS_KEY = 'secondhand:items';
 
 module.exports = async (req, res) => {
   // 设置 CORS
@@ -26,19 +32,27 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = await connectToDatabase();
-    const items = db.collection('items');
+    // 判断使用哪种存储
+    const useRedis = redis !== null;
 
     switch (req.method) {
       case 'GET':
         // 获取所有商品
-        const allItems = await items.find({}).sort({ createdAt: -1 }).toArray();
-        return res.status(200).json(allItems);
+        let items;
+        if (useRedis) {
+          items = await redis.get(ITEMS_KEY) || [];
+        } else {
+          items = memoryStore;
+        }
+        return res.status(200).json(items);
 
       case 'POST':
         // 创建商品
         const { name, price, condition, category, categoryValue, desc, image, status } = req.body;
+        let currentItems = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
+        
         const newItem = {
+          _id: Date.now().toString(),
           name,
           price: parseInt(price),
           condition,
@@ -47,30 +61,54 @@ module.exports = async (req, res) => {
           desc,
           image,
           status: status || 'active',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
-        const result = await items.insertOne(newItem);
-        return res.status(201).json({ ...newItem, _id: result.insertedId });
+        
+        currentItems.unshift(newItem);
+        
+        if (useRedis) {
+          await redis.set(ITEMS_KEY, currentItems);
+        } else {
+          memoryStore = currentItems;
+        }
+        
+        return res.status(201).json(newItem);
 
       case 'PUT':
         // 更新商品
         const { id, ...updateData } = req.body;
-        await items.updateOne(
-          { _id: new ObjectId(id) },
-          { 
-            $set: { 
-              ...updateData, 
-              updatedAt: new Date() 
-            } 
+        let itemsToUpdate = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
+        
+        const itemIndex = itemsToUpdate.findIndex(i => i._id === id);
+        if (itemIndex >= 0) {
+          itemsToUpdate[itemIndex] = { 
+            ...itemsToUpdate[itemIndex], 
+            ...updateData, 
+            updatedAt: new Date().toISOString() 
+          };
+          
+          if (useRedis) {
+            await redis.set(ITEMS_KEY, itemsToUpdate);
+          } else {
+            memoryStore = itemsToUpdate;
           }
-        );
+        }
         return res.status(200).json({ success: true });
 
       case 'DELETE':
         // 删除商品
         const { id: deleteId } = req.query;
-        await items.deleteOne({ _id: new ObjectId(deleteId) });
+        let itemsToDelete = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
+        
+        const filteredItems = itemsToDelete.filter(i => i._id !== deleteId);
+        
+        if (useRedis) {
+          await redis.set(ITEMS_KEY, filteredItems);
+        } else {
+          memoryStore = filteredItems;
+        }
+        
         return res.status(200).json({ success: true });
 
       default:

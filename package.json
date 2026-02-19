@@ -8,7 +8,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "mongodb": "^6.13.0"
+    "@upstash/redis": "^1.28.4"
   },
   "devDependencies": {
     "vercel": "^33.0.0"
