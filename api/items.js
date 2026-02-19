@@ -14,13 +14,17 @@ async function redisGet(key) {
     // 解析存储的 JSON 字符串
     const parsed = JSON.parse(data.result);
     
+    // 处理可能的双重包装
+    if (parsed.value && typeof parsed.value === 'string') {
+      const inner = JSON.parse(parsed.value);
+      if (Array.isArray(inner)) return inner;
+    }
+    
     // 确保返回的是数组
     if (Array.isArray(parsed)) {
       return parsed;
     }
     
-    // 如果不是数组，返回空数组
-    console.error('Redis data is not an array:', parsed);
     return [];
   } catch (error) {
     console.error('Redis get error:', error);
@@ -29,13 +33,14 @@ async function redisGet(key) {
 }
 
 async function redisSet(key, value) {
+  // 直接存储 JSON 字符串，不要包装
   await fetch(`${UPSTASH_URL}/set/${key}`, {
     method: 'POST',
     headers: { 
       Authorization: `Bearer ${UPSTASH_TOKEN}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ value: JSON.stringify(value) })
+    body: JSON.stringify(value)
   });
 }
 
