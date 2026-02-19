@@ -3,11 +3,29 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 async function redisGet(key) {
-  const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-  });
-  const data = await res.json();
-  return data.result ? JSON.parse(data.result) : [];
+  try {
+    const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
+      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+    });
+    const data = await res.json();
+    
+    if (!data.result) return [];
+    
+    // 解析存储的 JSON 字符串
+    const parsed = JSON.parse(data.result);
+    
+    // 确保返回的是数组
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    
+    // 如果不是数组，返回空数组
+    console.error('Redis data is not an array:', parsed);
+    return [];
+  } catch (error) {
+    console.error('Redis get error:', error);
+    return [];
+  }
 }
 
 async function redisSet(key, value) {
@@ -31,13 +49,13 @@ module.exports = async (req, res) => {
   try {
     switch (req.method) {
       case 'GET': {
-        const items = await redisGet('items') || [];
+        const items = await redisGet('items');
         return res.status(200).json(items);
       }
 
       case 'POST': {
         const { name, price, condition, category, categoryValue, desc, image, status } = req.body;
-        const items = await redisGet('items') || [];
+        const items = await redisGet('items');
         
         const newItem = {
           _id: Date.now().toString(),
@@ -60,7 +78,7 @@ module.exports = async (req, res) => {
 
       case 'PUT': {
         const { id, ...updateData } = req.body;
-        let items = await redisGet('items') || [];
+        let items = await redisGet('items');
         
         const idx = items.findIndex(i => i._id === id);
         if (idx >= 0) {
@@ -72,9 +90,9 @@ module.exports = async (req, res) => {
 
       case 'DELETE': {
         const { id } = req.query;
-        let items = await redisGet('items') || [];
-        items = items.filter(i => i._id !== id);
-        await redisSet('items', items);
+        let items = await redisGet('items');
+        const filtered = items.filter(i => i._id !== id);
+        await redisSet('items', filtered);
         return res.status(200).json({ success: true });
       }
 
