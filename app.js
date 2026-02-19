@@ -63,9 +63,33 @@ function showHome() {
         <div class="welcome-banner">
             <h2>🏪 欢迎来到二手集市</h2>
             <p>每个人都可以开店卖货</p>
+            <button onclick="showRegister()" class="cta-button">
+                🚀 免费注册开店
+            </button>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">精选商品</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">5</span>
+                <span class="stat-label">优质店铺</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">0</span>
+                <span class="stat-label">开店费用</span>
+            </div>
         </div>
         <div class="section-title">🔥 热门商品</div>
         <div class="grid" id="itemGrid">加载中...</div>
+        <div class="cta-section">
+            <h3>有闲置物品要卖？</h3>
+            <p>现在注册，立即拥有属于自己的店铺</p>
+            <button onclick="showRegister()" class="btn-primary large">
+                🏪 免费开店
+            </button>
+        </div>
     `;
     loadItems();
 }
