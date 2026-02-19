@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>大喵的闲置</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 60px;
+        }
+        
+        /* 首页 */
+        .header {
+            background: #fff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .share-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 8px;
+        }
+        
+        .item-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .item-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .item-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .item-info {
+            padding: 10px;
+        }
+        
+        .item-price {
+            color: #ff5722;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .item-name {
+            font-size: 14px;
+            color: #333;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .admin-entry {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 12px 16px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 详情页 */
+        .detail-page, .admin-page, .add-page {
+            display: none;
+            min-height: 100vh;
+            background: #fff;
+        }
+        
+        .detail-page.active, .admin-page.active, .add-page.active {
+            display: block;
+        }
+        
+        .detail-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+            color: #fff;
+            z-index: 100;
+        }
+        
+        .back-btn {
+            font-size: 20px;
+            padding: 4px;
+        }
+        
+        .detail-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        
+        .detail-info {
+            padding: 16px;
+        }
+        
+        .detail-price {
+            font-size: 28px;
+            color: #ff5722;
+            font-weight: bold;
+        }
+        
+        .detail-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        
+        .detail-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .detail-desc {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        .contact-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .contact-btn {
+            background: #07c160;
+            color: #fff;
+            border: none;
+            padding: 14px 48px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .wechat-id {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        /* 管理页 */
+        .admin-header {
+            background: #fff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .add-big-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            margin: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .add-big-btn .icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px;
+            background: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-num {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #999;
+            margin-top: 2px;
+        }
+        
+        .admin-list {
+            background: #fff;
+        }
+        
+        .admin-section-title {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #666;
+            background: #f5f5f5;
+        }
+        
+        .admin-item {
+            display: flex;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            gap: 12px;
+        }
+        
+        .admin-item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .admin-item-info {
+            flex: 1;
+        }
+        
+        .admin-item-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .admin-item-meta {
+            font-size: 13px;
+            color: #999;
+            margin-top: 6px;
+        }
+        
+        .admin-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .action-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+        
+        .action-btn.primary {
+            background: #ff5722;
+            color: #fff;
+            border-color: #ff5722;
+        }
+        
+        /* 添加商品页 */
+        .add-header {
+            background: #fff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .add-form {
+            padding: 16px;
+        }
+        
+        .photo-grid {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .photo-slot {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #999;
+        }
+        
+        .photo-slot .text {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-label .required {
+            color: #ff5722;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .price-input-wrap {
+            display: flex;
+            align-items: center;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0 12px;
+        }
+        
+        .price-input-wrap .currency {
+            color: #ff5722;
+            font-weight: bold;
+        }
+        
+        .price-input-wrap input {
+            flex: 1;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+        }
+        
+        .submit-btn {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+        }
+        
+        .submit-btn button {
+            width: 100%;
+            background: #07c160;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+        }
+        
+        .modal-btn.cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .modal-btn.confirm {
+            background: #ff5722;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div id="homePage" class="home-page">
+        <div class="header">
+            <h1>大喵的闲置</h1>
+            <div class="share-btn">↗️</div>
+        </div>
+        
+        <div class="grid" id="itemGrid">
+            <!-- 商品卡片由 JS 生成 -->
+        </div>
+        
+        <div class="admin-entry" onclick="showAdmin()">
+            🔐 管理后台
+        </div>
+    </div>
+    
+    <!-- 详情页 -->
+    <div id="detailPage" class="detail-page">
+        <div class="detail-header">
+            <span class="back-btn" onclick="backToHome()">←</span>
+            <span>商品详情</span>
+            <span style="width: 28px;"></span>
+        </div>
+        
+        <img id="detailImage" class="detail-image" src="" alt="">
+        
+        <div class="detail-info">
+            <div class="detail-price" id="detailPrice"></div>
+            <div class="detail-name" id="detailName"></div>
+            <div class="detail-meta">
+                <span id="detailCondition"></span>
+                <span id="detailCategory"></span>
+            </div>
+            <div class="detail-desc" id="detailDesc"></div>
+        </div>
+        
+        <div style="height: 100px;"></div>
+        
+        <div class="contact-section">
+            <button class="contact-btn" onclick="copyWechat()">📱 加微信购买</button>
+            <div class="wechat-id">微信号：damao2024（点击复制）</div>
+        </div>
+    </div>
+    
+    <!-- 管理页 -->
+    <div id="adminPage" class="admin-page">
+        <div class="admin-header">
+            <span>管理后台</span>
+            <span onclick="backToHome()" style="color: #666;">退出</span>
+        </div>
+        
+        <div class="add-big-btn" onclick="showAddPage()">
+            <div class="icon">📷</div>
+            <div>拍个照上架商品</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-num" id="activeCount">0</div>
+                <div class="stat-label">在售</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="soldCount">0</div>
+                <div class="stat-label">已售</div>
+            </div>
+        </div>
+        
+        <div class="admin-list" id="adminList">
+            <!-- 管理列表由 JS 生成 -->
+        </div>
+    </div>
+    
+    <!-- 添加商品页 -->
+    <div id="addPage" class="add-page">
+        <div class="add-header">
+            <span onclick="backToAdmin()">取消</span>
+            <span style="font-weight: 600;">发布商品</span>
+            <span style="color: #07c160; font-weight: 500;" onclick="submitItem()">发布</span>
+        </div>
+        
+        <div class="add-form">
+            <div class="photo-grid">
+                <div class="photo-slot" onclick="takePhoto()">
+                    📷
+                    <span class="text">拍照</span>
+                </div>
+                <div class="photo-slot" style="border-color: #e0e0e0;">
+                    <img id="previewImg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: none;">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">价格 <span class="required">*</span></label>
+                <div class="price-input-wrap">
+                    <span class="currency">¥</span>
+                    <input type="number" id="inputPrice" placeholder="输入价格">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">名称 <span class="required">*</span></label>
+                <input type="text" class="form-input" id="inputName" placeholder="输入商品名称，如：iPhone 12 手机壳">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">成色</label>
+                <select class="form-input" id="inputCondition">
+                    <option>全新未拆封</option>
+                    <option>99新</option>
+                    <option>95新</option>
+                    <option>9成新</option>
+                    <option>8成新</option>
+                    <option>使用过</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">分类</label>
+                <select class="form-input" id="inputCategory">
+                    <option value="electronics">📱 电子产品</option>
+                    <option value="furniture">🪑 家具</option>
+                    <option value="books">📚 书籍</option>
+                    <option value="clothing">👕 服饰</option>
+                    <option value="others">📦 其他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">描述（可选）</label>
+                <textarea class="form-input" id="inputDesc" rows="3" placeholder="简单描述一下商品..."></textarea>
+            </div>
+        </div>
+        
+        <div style="height: 80px;"></div>
+    </div>
+    
+    <!-- 改价弹窗 -->
+    <div id="priceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">修改价格</div>
+            <input type="number" class="modal-input" id="modalPrice" placeholder="输入新价格">
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm" onclick="confirmPrice()">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 密码验证弹窗 -->
+    <div id="passwordModal" class="modal active">
+        <div class="modal-content">
+            <div class="modal-title">🔐 请输入管理密码</div>
+            <input type="password" class="modal-input" id="adminPassword" placeholder="密码">
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closePasswordModal()">取消</button>
+                <button class="modal-btn confirm" onclick="checkPassword()">进入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock 数据
+        let items = [
+            {
+                id: 1,
+                name: 'iPhone 12 Pro 手机壳套装',
+                price: 299,
+                condition: '95新',
+                category: '电子产品',
+                desc: '买了没多久，换手机了所以出掉。包含3个壳子+贴膜，原价599买的。',
+                image: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=400&h=400&fit=crop',
+                status: 'active'
+            },
+            {
+                id: 2,
+                name: '宜家书桌 白色',
+                price: 150,
+                condition: '8成新',
+                category: '家具',
+                desc: '尺寸 120x60cm，用了两年，搬家带不走。',
+                image: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400&h=400&fit=crop',
+                status: 'active'
+            },
+            {
+                id: 3,
+                name: 'JavaScript高级程序设计',
+                price: 50,
+                condition: '9成新',
+                category: '书籍',
+                desc: '就翻过几次，几乎全新。',
+                image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
+                status: 'sold'
+            },
+            {
+                id: 4,
+                name: 'Nike 运动鞋 42码',
+                price: 199,
+                condition: '95新',
+                category: '服饰',
+                desc: '买小了，只穿过两次。',
+                image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+                status: 'active'
+            },
+            {
+                id: 5,
+                name: '蓝牙音箱 便携式',
+                price: 88,
+                condition: '使用过',
+                category: '电子产品',
+                desc: '音质不错，续航8小时。',
+                image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop',
+                status: 'active'
+            },
+            {
+                id: 6,
+                name: '机械键盘 青轴',
+                price: 350,
+                condition: '99新',
+                category: '电子产品',
+                desc: 'IKBC 键盘，RGB背光，手感很好。',
+                image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=400&h=400&fit=crop',
+                status: 'active'
+            }
+        ];
+        
+        let editingId = null;
+        
+        // 渲染首页
+        function renderHome() {
+            const grid = document.getElementById('itemGrid');
+            grid.innerHTML = items.map(item => `
+                <div class="item-card" onclick="showDetail(${item.id})">
+                    <img class="item-image" src="${item.image}" alt="">
+                    ${item.status === 'sold' ? '<div class="item-overlay">已售</div>' : ''}
+                    <div class="item-info">
+                        <div class="item-price">¥${item.price}</div>
+                        <div class="item-name">${item.name}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 显示详情
+        function showDetail(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            
+            document.getElementById('detailImage').src = item.image;
+            document.getElementById('detailPrice').textContent = `¥${item.price}${item.status === 'sold' ? ' (已售)' : ''}`;
+            document.getElementById('detailName').textContent = item.name;
+            document.getElementById('detailCondition').textContent = item.condition;
+            document.getElementById('detailCategory').textContent = item.category;
+            document.getElementById('detailDesc').textContent = item.desc;
+            
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('detailPage').classList.add('active');
+        }
+        
+        // 返回首页
+        function backToHome() {
+            document.getElementById('homePage').style.display = 'block';
+            document.getElementById('detailPage').classList.remove('active');
+            document.getElementById('adminPage').classList.remove('active');
+            document.getElementById('addPage').classList.remove('active');
+        }
+        
+        // 复制微信
+        function copyWechat() {
+            alert('微信号已复制：damao2024');
+        }
+        
+        // 显示管理页
+        function showAdmin() {
+            document.getElementById('passwordModal').classList.add('active');
+        }
+        
+        // 关闭密码弹窗
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+        
+        // 验证密码
+        function checkPassword() {
+            const pwd = document.getElementById('adminPassword').value;
+            if (pwd === '123456') { // Demo 密码
+                document.getElementById('passwordModal').classList.remove('active');
+                document.getElementById('homePage').style.display = 'none';
+                document.getElementById('adminPage').classList.add('active');
+                document.getElementById('adminPassword').value = '';
+                renderAdmin();
+            } else {
+                alert('密码错误');
+            }
+        }
+        
+        // 渲染管理列表
+        function renderAdmin() {
+            const activeItems = items.filter(i => i.status === 'active');
+            const soldItems = items.filter(i => i.status === 'sold');
+            
+            document.getElementById('activeCount').textContent = activeItems.length;
+            document.getElementById('soldCount').textContent = soldItems.length;
+            
+            const list = document.getElementById('adminList');
+            list.innerHTML = `
+                <div class="admin-section-title">在售商品 (${activeItems.length})</div>
+                ${activeItems.map(item => renderAdminItem(item)).join('')}
+                ${soldItems.length > 0 ? `
+                    <div class="admin-section-title">已售出 (${soldItems.length})</div>
+                    ${soldItems.map(item => renderAdminItem(item)).join('')}
+                ` : ''}
+            `;
+        }
+        
+        function renderAdminItem(item) {
+            return `
+                <div class="admin-item">
+                    <img class="admin-item-img" src="${item.image}" alt="">
+                    <div class="admin-item-info">
+                        <div class="admin-item-name">${item.name}</div>
+                        <div class="admin-item-meta">¥${item.price} · ${item.condition} · ${item.category}</div>
+                        <div class="admin-item-actions">
+                            <button class="action-btn primary" onclick="editPrice(${item.id})">改价</button>
+                            ${item.status === 'active' 
+                                ? `<button class="action-btn" onclick="markSold(${item.id})">标记已售</button>`
+                                : `<button class="action-btn" onclick="markActive(${item.id})">重新上架</button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 改价
+        function editPrice(id) {
+            editingId = id;
+            const item = items.find(i => i.id === id);
+            document.getElementById('modalPrice').value = item.price;
+            document.getElementById('priceModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('priceModal').classList.remove('active');
+        }
+        
+        function confirmPrice() {
+            const newPrice = document.getElementById('modalPrice').value;
+            if (newPrice && editingId) {
+                const item = items.find(i => i.id === editingId);
+                item.price = parseInt(newPrice);
+                renderAdmin();
+                renderHome();
+                closeModal();
+                alert('价格已修改');
+            }
+        }
+        
+        // 标记已售
+        function markSold(id) {
+            if (confirm('确定标记为已售出？')) {
+                const item = items.find(i => i.id === id);
+                item.status = 'sold';
+                renderAdmin();
+                renderHome();
+            }
+        }
+        
+        // 重新上架
+        function markActive(id) {
+            const item = items.find(i => i.id === id);
+            item.status = 'active';
+            renderAdmin();
+            renderHome();
+        }
+        
+        // 显示添加页
+        function showAddPage() {
+            document.getElementById('addPage').classList.add('active');
+        }
+        
+        // 返回管理页
+        function backToAdmin() {
+            document.getElementById('addPage').classList.remove('active');
+        }
+        
+        // 模拟拍照
+        function takePhoto() {
+            // Demo 中用随机图片代替
+            const randomImages = [
+                'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=400&fit=crop'
+            ];
+            const img = randomImages[Math.floor(Math.random() * randomImages.length)];
+            document.getElementById('previewImg').src = img;
+            document.getElementById('previewImg').style.display = 'block';
+        }
+        
+        // 提交商品
+        function submitItem() {
+            const price = document.getElementById('inputPrice').value;
+            const name = document.getElementById('inputName').value;
+            const condition = document.getElementById('inputCondition').value;
+            const category = document.getElementById('inputCategory');
+            const categoryText = category.options[category.selectedIndex].text;
+            const desc = document.getElementById('inputDesc').value;
+            const img = document.getElementById('previewImg');
+            
+            if (!price || !name) {
+                alert('请填写价格和名称');
+                return;
+            }
+            
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                price: parseInt(price),
+                condition: condition,
+                category: categoryText,
+                desc: desc || '暂无描述',
+                image: img.style.display === 'block' ? img.src : 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+                status: 'active'
+            };
+            
+            items.unshift(newItem);
+            
+            // 清空表单
+            document.getElementById('inputPrice').value = '';
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputDesc').value = '';
+            document.getElementById('previewImg').style.display = 'none';
+            
+            backToAdmin();
+            renderAdmin();
+            renderHome();
+            
+            alert('商品发布成功！');
+        }
+        
+        // 初始化
+        renderHome();
+    </script>
+</body>
+</html>
