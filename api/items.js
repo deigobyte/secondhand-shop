@@ -1,28 +1,44 @@
-const { Redis } = require('@upstash/redis');
-
-// 内存存储作为 fallback
-let memoryStore = [];
-
-// 检查是否有 Redis 配置
-const hasRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
-
-// 如果有配置就创建 Redis 客户端
-let redis = null;
-if (hasRedis) {
-  try {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
-  } catch (e) {
-    console.error('Redis init error:', e);
+// 纯内存存储
+let memoryStore = [
+  {
+    _id: '1',
+    name: 'iPhone 12 Pro 手机壳套装',
+    price: 299,
+    condition: '95新',
+    category: '电子产品',
+    categoryValue: 'electronics',
+    desc: '买了没多久，换手机了所以出掉。包含3个壳子+贴膜，原价599买的。',
+    image: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=400&h=400&fit=crop',
+    status: 'active',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: '2',
+    name: '宜家书桌 白色',
+    price: 150,
+    condition: '8成新',
+    category: '家具',
+    categoryValue: 'furniture',
+    desc: '尺寸 120x60cm，用了两年，搬家带不走。',
+    image: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400&h=400&fit=crop',
+    status: 'active',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: '3',
+    name: 'JavaScript高级程序设计',
+    price: 50,
+    condition: '9成新',
+    category: '书籍',
+    categoryValue: 'books',
+    desc: '就翻过几次，几乎全新。',
+    image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
+    status: 'sold',
+    createdAt: new Date().toISOString()
   }
-}
-
-const ITEMS_KEY = 'secondhand:items';
+];
 
 module.exports = async (req, res) => {
-  // 设置 CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -32,25 +48,12 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 判断使用哪种存储
-    const useRedis = redis !== null;
-
     switch (req.method) {
       case 'GET':
-        // 获取所有商品
-        let items;
-        if (useRedis) {
-          items = await redis.get(ITEMS_KEY) || [];
-        } else {
-          items = memoryStore;
-        }
-        return res.status(200).json(items);
+        return res.status(200).json(memoryStore);
 
       case 'POST':
-        // 创建商品
         const { name, price, condition, category, categoryValue, desc, image, status } = req.body;
-        let currentItems = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
-        
         const newItem = {
           _id: Date.now().toString(),
           name,
@@ -64,51 +67,24 @@ module.exports = async (req, res) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        
-        currentItems.unshift(newItem);
-        
-        if (useRedis) {
-          await redis.set(ITEMS_KEY, currentItems);
-        } else {
-          memoryStore = currentItems;
-        }
-        
+        memoryStore.unshift(newItem);
         return res.status(201).json(newItem);
 
       case 'PUT':
-        // 更新商品
         const { id, ...updateData } = req.body;
-        let itemsToUpdate = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
-        
-        const itemIndex = itemsToUpdate.findIndex(i => i._id === id);
+        const itemIndex = memoryStore.findIndex(i => i._id === id);
         if (itemIndex >= 0) {
-          itemsToUpdate[itemIndex] = { 
-            ...itemsToUpdate[itemIndex], 
+          memoryStore[itemIndex] = { 
+            ...memoryStore[itemIndex], 
             ...updateData, 
             updatedAt: new Date().toISOString() 
           };
-          
-          if (useRedis) {
-            await redis.set(ITEMS_KEY, itemsToUpdate);
-          } else {
-            memoryStore = itemsToUpdate;
-          }
         }
         return res.status(200).json({ success: true });
 
       case 'DELETE':
-        // 删除商品
         const { id: deleteId } = req.query;
-        let itemsToDelete = useRedis ? (await redis.get(ITEMS_KEY) || []) : memoryStore;
-        
-        const filteredItems = itemsToDelete.filter(i => i._id !== deleteId);
-        
-        if (useRedis) {
-          await redis.set(ITEMS_KEY, filteredItems);
-        } else {
-          memoryStore = filteredItems;
-        }
-        
+        memoryStore = memoryStore.filter(i => i._id !== deleteId);
         return res.status(200).json({ success: true });
 
       default:
