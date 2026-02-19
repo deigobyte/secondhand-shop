@@ -209,11 +209,34 @@
         function backToHome() { document.getElementById('homePage').style.display = 'block'; document.getElementById('detailPage').classList.remove('active'); document.getElementById('adminPage').classList.remove('active'); document.getElementById('addPage').classList.remove('active'); document.getElementById('editPage').classList.remove('active'); }
         function backToAdmin() { document.getElementById('addPage').classList.remove('active'); document.getElementById('editPage').classList.remove('active'); document.getElementById('adminPage').classList.add('active'); renderAdmin(); }
         function copyWechat() { alert('微信号已复制：damao2024'); }
-        function showAdmin() { document.getElementById('passwordModal').classList.add('active'); }
+        
+        // 检查登录状态（1小时内有效）
+        function isLoggedIn() {
+            const loginTime = localStorage.getItem('adminLogin');
+            if (loginTime) {
+                const oneHour = 60 * 60 * 1000;
+                if (Date.now() - parseInt(loginTime) < oneHour) return true;
+                localStorage.removeItem('adminLogin');
+            }
+            return false;
+        }
+        
+        function setLoggedIn() { localStorage.setItem('adminLogin', Date.now()); }
+        
+        function showAdmin() { 
+            if (isLoggedIn()) {
+                document.getElementById('homePage').style.display = 'none';
+                document.getElementById('adminPage').classList.add('active');
+                renderAdmin();
+            } else {
+                document.getElementById('passwordModal').classList.add('active');
+            }
+        }
         function closePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
         
         function checkPassword() {
             if (document.getElementById('adminPassword').value === '123456') {
+                setLoggedIn();
                 document.getElementById('passwordModal').classList.remove('active');
                 document.getElementById('homePage').style.display = 'none';
                 document.getElementById('adminPage').classList.add('active');
