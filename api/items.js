@@ -2,16 +2,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
 
-// 配置选项
-const options = {
-  tls: true,
-  tlsAllowInvalidCertificates: false,
-  tlsAllowInvalidHostnames: false,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-};
-
-const client = new MongoClient(uri, options);
+// 简化的连接选项
+const client = new MongoClient(uri);
 
 let cachedDb = null;
 
