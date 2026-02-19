@@ -12,7 +12,7 @@
 1. 访问 https://www.mongodb.com/cloud/atlas/register
 2. 注册/登录账号
 3. 创建新集群 (选择 FREE Shared Cluster)
-4. 选择区域 (建议选 AWS / Asia Pacific - Mumbai 或 Singapore，离中国近)
+4. 选择区域 (你在美国，建议选 AWS / US East - N. Virginia 或 US West)
 5. 等待集群创建完成
 
 ### 设置数据库访问
