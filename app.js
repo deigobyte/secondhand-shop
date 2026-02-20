@@ -611,11 +611,16 @@ async function showItemDetail(id) {
         }
         
         // 更新 meta 标签为商品信息（用于微信分享）
+        // 微信不支持 base64 图片，使用默认图片或确保是 HTTPS URL
+        const ogImage = item.image.startsWith('data:') 
+            ? 'https://images.unsplash.com/photo-1603351154351-5cf2330927f0?w=400'
+            : item.image;
+        
         updateMetaTags(
             `${item.name} - $${item.price} | 东区集市`,
             `${item.desc.substring(0, 100)}... | ${item.condition} | ${item.category}`,
-            item.image,
-            `https://secondhand-shop-prod.vercel.app/item/${item._id}`
+            ogImage,
+            `https://secondhand-shop-prod.vercel.app`
         );
         
         // 获取店铺信息
