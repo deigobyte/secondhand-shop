@@ -409,7 +409,7 @@ function renderItems(items, containerId, isOwner) {
             <img class="item-image" src="${item.image}" alt="" onclick="showItemDetail('${item._id}')">
             ${item.status === 'sold' ? '<div class="item-overlay">已售</div>' : ''}
             <div class="item-info">
-                <div class="item-price">¥${item.price}</div>
+                <div class="item-price">$${item.price}</div>
                 <div class="item-name">${item.name}</div>
                 ${isOwner ? `
                     <div class="item-actions">
@@ -584,7 +584,7 @@ async function showItemDetail(id) {
                 </div>
                 
                 <div class="item-detail-info">
-                    <div class="item-detail-price">¥${item.price}</div>
+                    <div class="item-detail-price">$${item.price}</div>
                     <h1 class="item-detail-name">${item.name}</h1>
                     
                     <div class="item-detail-meta">
