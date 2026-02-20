@@ -136,14 +136,22 @@ async function showShops() {
 
 // 显示指定店铺
 async function showShopDetail(userId) {
-    currentView = 'shopDetail';
-    document.getElementById('mainContent').innerHTML = `<div class="grid" id="itemGrid">加载中...</div>`;
-    
-    try {
-        const response = await fetch(`${API_BASE}/shop/items?userId=${userId}`);
-        const data = await response.json();
-        
-        document.getElementById('mainContent').innerHTML = `
+  currentView = 'shopDetail';
+  document.getElementById('mainContent').innerHTML = `<div class="grid" id="itemGrid">加载中...</div>`;
+
+  try {
+    const response = await fetch(`${API_BASE}/shop/items?userId=${userId}`);
+    const data = await response.json();
+
+    const announcementHtml = data.shop.announcement
+      ? `<div class="announcement-bar">
+           <div class="announcement-content">
+             <span class="announcement-icon">📢</span>${data.shop.announcement}
+           </div>
+         </div>`
+      : '';
+
+    document.getElementById('mainContent').innerHTML = `
             <div class="shop-header">
                 <button onclick="showShops()" class="back-btn">← 返回</button>
                 <div class="shop-title">
@@ -154,9 +162,16 @@ async function showShopDetail(userId) {
                     </div>
                 </div>
             </div>
+            ${announcementHtml}
             <div class="section-title">📦 店铺商品 (${data.items.length})</div>
             <div class="grid" id="itemGrid"></div>
         `;
+
+    renderItems(data.items, 'itemGrid', false);
+  } catch (e) {
+    document.getElementById('mainContent').innerHTML = '<div class="error">加载失败</div>';
+  }
+}
         
         renderItems(data.items, 'itemGrid', false);
     } catch (e) {
@@ -281,13 +296,13 @@ function logout() {
 
 // 显示我的店铺
 async function showMyShop() {
-    if (!currentUser) {
-        showLogin();
-        return;
-    }
-    
-    currentView = 'myshop';
-    document.getElementById('mainContent').innerHTML = `
+  if (!currentUser) {
+    showLogin();
+    return;
+  }
+
+  currentView = 'myshop';
+  document.getElementById('mainContent').innerHTML = `
         <div class="my-shop-header">
             <div class="shop-info-card">
                 <div class="shop-icon large">🏪</div>
@@ -298,11 +313,72 @@ async function showMyShop() {
             </div>
             <button onclick="showAddItem()" class="btn-primary large">+ 发布商品</button>
         </div>
+        <div class="announcement-edit">
+            <h3>📢 店铺公告</h3>
+            <input type="text" id="announcementInput" class="announcement-input" 
+                   placeholder="设置店铺公告（例如：本店所有商品包邮、限时优惠等）" 
+                   value="${currentUser.announcement || ''}" maxlength="100">
+            <div class="announcement-actions">
+                <button onclick="saveAnnouncement()" class="btn-save">💾 保存公告</button>
+                <button onclick="clearAnnouncement()" class="btn-clear">🗑️ 清空</button>
+            </div>
+            <div class="announcement-preview" id="announcementPreview" style="display: ${currentUser.announcement ? 'block' : 'none'}">
+                <strong>预览效果：</strong> <span id="previewText">${currentUser.announcement || ''}</span>
+            </div>
+        </div>
         <div class="section-title">📦 我的商品</div>
         <div class="grid" id="myItemGrid">加载中...</div>
     `;
-    
-    loadMyItems();
+
+  // 实时预览
+  const input = document.getElementById('announcementInput');
+  const preview = document.getElementById('announcementPreview');
+  const previewText = document.getElementById('previewText');
+
+  input.addEventListener('input', function () {
+    const value = this.value.trim();
+    if (value) {
+      preview.style.display = 'block';
+      previewText.textContent = value;
+    } else {
+      preview.style.display = 'none';
+    }
+  });
+
+  loadMyItems();
+}
+
+// 保存公告
+async function saveAnnouncement() {
+  const announcement = document.getElementById('announcementInput').value.trim();
+
+  try {
+    const response = await fetch(`${API_BASE}/shop/announcement`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ announcement })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      currentUser.announcement = announcement;
+      alert(announcement ? '公告已保存！' : '公告已清空');
+    } else {
+      alert(data.error || '保存失败');
+    }
+  } catch (e) {
+    alert('网络错误');
+  }
+}
+
+// 清空公告
+function clearAnnouncement() {
+  document.getElementById('announcementInput').value = '';
+  document.getElementById('announcementPreview').style.display = 'none';
+  saveAnnouncement();
 }
 
 // 加载我的商品

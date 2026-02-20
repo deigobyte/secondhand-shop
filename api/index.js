@@ -172,10 +172,35 @@ module.exports = async (req, res) => {
         shop: {
           _id: user._id,
           shopName: user.shopName,
-          username: user.username
+          username: user.username,
+          announcement: user.announcement || ''
         },
         items: shopItems
       });
+    }
+
+    // ===== 更新店铺公告（需要登录） =====
+    if (path === '/api/shop/announcement' && req.method === 'PUT') {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ error: '请先登录' });
+
+      const token = authHeader.replace('Bearer ', '');
+      const tokens = await redisGet('tokens') || {};
+      const tokenData = tokens[token];
+      
+      if (!tokenData) return res.status(401).json({ error: '登录已过期' });
+
+      const { announcement } = req.body;
+      
+      let users = await redisGet('users') || [];
+      const userIndex = users.findIndex(u => u._id === tokenData.userId);
+      
+      if (userIndex === -1) return res.status(404).json({ error: '用户不存在' });
+
+      users[userIndex].announcement = announcement || '';
+      await redisSet('users', users);
+      
+      return res.status(200).json({ success: true, announcement: users[userIndex].announcement });
     }
 
     // ===== 商品操作（需要登录） =====

@@ -620,6 +620,81 @@
             font-weight: 600;
             cursor: pointer;
         }
+        
+        /* 滚动公告栏 */
+        .announcement-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .announcement-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll 15s linear infinite;
+            padding-left: 100%;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        .announcement-bar:hover .announcement-content {
+            animation-play-state: paused;
+        }
+        .announcement-icon {
+            margin-right: 8px;
+        }
+        
+        /* 编辑公告 */
+        .announcement-edit {
+            background: #fff;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .announcement-edit h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .announcement-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .announcement-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-clear {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .announcement-preview {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
