@@ -96,7 +96,8 @@ function showHome() {
             </button>
         </div>
     `;
-    loadItems();
+    // 延迟加载商品，确保DOM已渲染
+    setTimeout(loadItems, 100);
 }
 
 // 显示所有店铺
