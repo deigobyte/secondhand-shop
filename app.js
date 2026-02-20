@@ -7,7 +7,45 @@ let authToken = localStorage.getItem('authToken');
 // 页面状态
 let currentView = 'home'; // home, shop, myshop, login, register
 
-// 初始化
+// ==================== Open Graph Meta 更新 ====================
+
+function updateMetaTags(title, description, image, url) {
+  // 更新 title
+  document.title = title || '东区集市';
+  
+  // 更新或创建 og:title
+  updateMetaProperty('og:title', title || '东区集市');
+  
+  // 更新或创建 og:description
+  updateMetaProperty('og:description', description || '发现优质二手商品，人人都可以开店卖货');
+  
+  // 更新或创建 og:image
+  updateMetaProperty('og:image', image || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400');
+  
+  // 更新或创建 og:url
+  updateMetaProperty('og:url', url || 'https://secondhand-shop-prod.vercel.app');
+  
+  // 更新 description
+  let descMeta = document.querySelector('meta[name="description"]');
+  if (descMeta) {
+    descMeta.content = description || '发现优质二手商品，人人都可以开店卖货';
+  }
+}
+
+function updateMetaProperty(property, content) {
+  let meta = document.querySelector(`meta[property="${property}"]`);
+  if (meta) {
+    meta.content = content;
+  } else {
+    meta = document.createElement('meta');
+    meta.setAttribute('property', property);
+    meta.content = content;
+    document.head.appendChild(meta);
+  }
+}
+
+// ==================== 初始化 ====================
+
 async function init() {
     if (authToken) {
         await loadCurrentUser();
@@ -59,6 +97,15 @@ function renderHeader() {
 // 显示首页
 function showHome() {
     currentView = 'home';
+    
+    // 更新 meta 标签为首页信息
+    updateMetaTags(
+        '东区集市 - 每个人都可以开店',
+        '发现优质二手商品，人人都可以开店卖货',
+        'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400',
+        'https://secondhand-shop-prod.vercel.app'
+    );
+    
     document.getElementById('mainContent').innerHTML = `
         <div class="welcome-banner">
             <h2>🏪 欢迎来到东区集市</h2>
@@ -562,6 +609,14 @@ async function showItemDetail(id) {
             alert('商品不存在');
             return;
         }
+        
+        // 更新 meta 标签为商品信息（用于微信分享）
+        updateMetaTags(
+            `${item.name} - $${item.price} | 东区集市`,
+            `${item.desc.substring(0, 100)}... | ${item.condition} | ${item.category}`,
+            item.image,
+            `https://secondhand-shop-prod.vercel.app/item/${item._id}`
+        );
         
         // 获取店铺信息
         const shopResponse = await fetch(`${API_BASE}/shops`);
