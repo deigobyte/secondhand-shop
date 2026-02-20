@@ -124,6 +124,160 @@
             margin-bottom: 20px;
         }
         
+        /* 英雄区按钮 */
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .cta-button.secondary {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        
+        /* 摄像头页面 */
+        .camera-page {
+            background: #000;
+            min-height: 100vh;
+            color: #fff;
+        }
+        .camera-header {
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .camera-header h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .camera-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .back-btn.white {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .camera-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+        }
+        .camera-status {
+            text-align: center;
+            padding: 20px;
+        }
+        .camera-status.error {
+            color: #ff6b6b;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 24px;
+            background: #1a1a1a;
+        }
+        .btn-camera {
+            padding: 14px 28px;
+            border-radius: 30px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #333;
+            color: #fff;
+        }
+        .btn-camera.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .btn-camera.capture {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            padding: 0;
+            background: #fff;
+            color: #333;
+            font-size: 28px;
+            border: 4px solid #667eea;
+        }
+        .btn-camera.stop {
+            background: #ff6b6b;
+        }
+        
+        .camera-preview {
+            padding: 20px;
+            background: #1a1a1a;
+        }
+        .camera-preview h3 {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+        .camera-preview img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .preview-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .camera-tips {
+            padding: 24px;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+        }
+        .camera-tips h4 {
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+        .camera-tips ul {
+            list-style: none;
+            padding: 0;
+        }
+        .camera-tips li {
+            padding: 8px 0;
+            color: #ccc;
+            padding-left: 24px;
+            position: relative;
+        }
+        .camera-tips li:before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #667eea;
+        }
+        
         /* 内容区 */
         .container {
             max-width: 800px;

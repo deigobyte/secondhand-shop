@@ -63,9 +63,14 @@ function showHome() {
         <div class="welcome-banner">
             <h2>🏪 欢迎来到二手集市</h2>
             <p>每个人都可以开店卖货</p>
-            <button onclick="showRegister()" class="cta-button">
-                🚀 免费注册开店
-            </button>
+            <div class="hero-buttons">
+                <button onclick="showRegister()" class="cta-button">
+                    🚀 免费注册开店
+                </button>
+                <button onclick="showLiveCamera()" class="cta-button secondary">
+                    📹 视频看货
+                </button>
+            </div>
         </div>
         <div class="stats-bar">
             <div class="stat-item">
@@ -554,5 +559,254 @@ function editItem(id) {
     console.log('编辑商品:', id);
 }
 
-// 初始化
+// ==================== 摄像头实时看货功能 ====================
+
+// 显示视频看货页面
+async function showLiveCamera() {
+    currentView = 'liveCamera';
+    document.getElementById('mainContent').innerHTML = `
+        <div class="camera-page">
+            <div class="camera-header">
+                <button onclick="showHome()" class="back-btn white">← 返回</button>
+                <h2>📹 视频看货</h2>
+                <p>让我看看你要卖的物品</p>
+            </div>
+            
+            <div class="camera-container">
+                <video id="cameraVideo" autoplay playsinline></video>
+                <canvas id="cameraCanvas" style="display:none;"></canvas>
+                
+                <div class="camera-overlay" id="cameraOverlay">
+                    <div class="camera-status">正在启动摄像头...</div>
+                </div>
+            </div>
+            
+            <div class="camera-controls">
+                <button id="startCameraBtn" onclick="startCamera()" class="btn-camera primary">
+                    📷 开启摄像头
+                </button>
+                <button id="captureBtn" onclick="capturePhoto()" class="btn-camera capture" style="display:none;">
+                    📸 拍照
+                </button>
+                <button id="stopCameraBtn" onclick="stopCamera()" class="btn-camera stop" style="display:none;">
+                    ⏹ 关闭
+                </button>
+            </div>
+            
+            <div class="camera-preview" id="photoPreview" style="display:none;">
+                <h3>📷 拍摄预览</h3>
+                <img id="previewImage" src="" alt="拍摄的照片">
+                <div class="preview-actions">
+                    <button onclick="retakePhoto()" class="btn-camera">🔄 重拍</button>
+                    <button onclick="sendToAssistant()" class="btn-camera primary">📤 发给大喵助理</button>
+                </div>
+            </div>
+            
+            <div class="camera-tips">
+                <h4>💡 使用提示</h4>
+                <ul>
+                    <li>确保光线充足，让物品清晰可见</li>
+                    <li>可以多角度拍摄，展示物品细节</li>
+                    <li>拍照后点击"发给大喵助理"，我会帮你估价</li>
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+let cameraStream = null;
+let capturedImageData = null;
+
+// 启动摄像头
+async function startCamera() {
+    const video = document.getElementById('cameraVideo');
+    const overlay = document.getElementById('cameraOverlay');
+    const startBtn = document.getElementById('startCameraBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const stopBtn = document.getElementById('stopCameraBtn');
+    
+    try {
+        overlay.innerHTML = '<div class="camera-status">🎥 正在请求摄像头权限...</div>';
+        
+        // 请求摄像头权限 - 优先使用后置摄像头（手机）或默认摄像头（Mac）
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'environment',  // 优先后置摄像头
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
+            audio: false
+        });
+        
+        video.srcObject = cameraStream;
+        
+        video.onloadedmetadata = () => {
+            overlay.style.display = 'none';
+            startBtn.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'inline-block';
+        };
+        
+    } catch (err) {
+        console.error('摄像头启动失败:', err);
+        overlay.innerHTML = `
+            <div class="camera-status error">
+                ❌ 无法启动摄像头<br>
+                <small>${err.message}</small><br>
+                <button onclick="startCamera()" style="margin-top:10px;padding:8px 16px;">重试</button>
+            </div>
+        `;
+    }
+}
+
+// 拍照
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const preview = document.getElementById('photoPreview');
+    const previewImg = document.getElementById('previewImage');
+    const captureBtn = document.getElementById('captureBtn');
+    
+    // 设置 canvas 尺寸与视频相同
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // 绘制视频帧到 canvas
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // 获取图片数据
+    capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
+    
+    // 显示预览
+    previewImg.src = capturedImageData;
+    preview.style.display = 'block';
+    captureBtn.style.display = 'none';
+    
+    // 滚动到预览区域
+    preview.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 重拍
+function retakePhoto() {
+    const preview = document.getElementById('photoPreview');
+    const captureBtn = document.getElementById('captureBtn');
+    
+    preview.style.display = 'none';
+    captureBtn.style.display = 'inline-block';
+    capturedImageData = null;
+}
+
+// 关闭摄像头
+function stopCamera() {
+    const video = document.getElementById('cameraVideo');
+    const overlay = document.getElementById('cameraOverlay');
+    const startBtn = document.getElementById('startCameraBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const stopBtn = document.getElementById('stopCameraBtn');
+    const preview = document.getElementById('photoPreview');
+    
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    
+    video.srcObject = null;
+    overlay.style.display = 'flex';
+    overlay.innerHTML = '<div class="camera-status">摄像头已关闭</div>';
+    startBtn.style.display = 'inline-block';
+    captureBtn.style.display = 'none';
+    stopBtn.style.display = 'none';
+    preview.style.display = 'none';
+    capturedImageData = null;
+}
+
+// 发送给助手
+async function sendToAssistant() {
+    if (!capturedImageData) {
+        alert('请先拍照');
+        return;
+    }
+    
+    // 显示发送中
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '📤 发送中...';
+    btn.disabled = true;
+    
+    try {
+        // 压缩图片
+        const compressedImage = await compressImage(capturedImageData, 1200);
+        
+        // 保存到本地存储（用于调试）
+        localStorage.setItem('lastCapturedImage', compressedImage);
+        
+        // 显示成功提示和复制按钮
+        alert('📸 照片已拍摄完成！\n\n你可以：\n1. 直接截图发给我\n2. 或复制图片链接（在下方）\n\n我会帮你看看这件物品~');
+        
+        // 显示图片在新窗口，方便用户截图或复制
+        const newWindow = window.open('', '_blank');
+        newWindow.document.write(`
+            <html>
+            <head><title>拍摄的照片 - 发给大喵助理</title></head>
+            <body style="margin:0;display:flex;flex-direction:column;align-items:center;padding:20px;font-family:sans-serif;">
+                <h2>📸 拍摄的照片</h2>
+                <p>截图或右键保存，然后发给我</p>
+                <img src="${compressedImage}" style="max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+                <p style="margin-top:20px;color:#666;">
+                    <button onclick="copyImage()" style="padding:10px 20px;font-size:16px;">📋 复制图片</button>
+                </p>
+                <script>
+                    function copyImage() {
+                        const img = document.querySelector('img');
+                        fetch(img.src)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                navigator.clipboard.write([
+                                    new ClipboardItem({ 'image/png': blob })
+                                ]);
+                                alert('已复制到剪贴板！');
+                            });
+                    }
+                <\/script>
+            </body>
+            </html>
+        `);
+        
+    } catch (e) {
+        alert('发送失败: ' + e.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// 压缩图片
+function compressImage(dataUrl, maxWidth) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxWidth) {
+                height = (maxWidth / width) * height;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = dataUrl;
+    });
+}
+
+// ==================== 初始化 ====================
+
 document.addEventListener('DOMContentLoaded', init);
