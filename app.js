@@ -44,6 +44,30 @@ function updateMetaProperty(property, content) {
   }
 }
 
+// ==================== 路由处理 ====================
+
+// 解析 URL 参数
+function getUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        item: params.get('item'),
+        shop: params.get('shop')
+    };
+}
+
+// 更新 URL（不刷新页面）
+function updateUrl(params) {
+    const url = new URL(window.location);
+    if (params.item) {
+        url.searchParams.set('item', params.item);
+    } else if (params.shop) {
+        url.searchParams.set('shop', params.shop);
+    } else {
+        url.search = '';
+    }
+    window.history.pushState({}, '', url);
+}
+
 // ==================== 初始化 ====================
 
 async function init() {
@@ -51,7 +75,19 @@ async function init() {
         await loadCurrentUser();
     }
     renderHeader();
-    showHome(); // 先渲染首页，再加载商品
+    
+    // 检查 URL 参数，决定显示哪个页面
+    const params = getUrlParams();
+    if (params.item) {
+        // 显示商品详情
+        await showItemDetail(params.item);
+    } else if (params.shop) {
+        // 显示店铺
+        await showShopDetail(params.shop);
+    } else {
+        // 显示首页
+        showHome();
+    }
 }
 
 // 加载当前用户
@@ -97,6 +133,9 @@ function renderHeader() {
 // 显示首页
 function showHome() {
     currentView = 'home';
+    
+    // 清除 URL 参数
+    updateUrl({});
     
     // 更新 meta 标签为首页信息
     updateMetaTags(
@@ -183,6 +222,9 @@ async function showShops() {
 
 // 显示指定店铺
 async function showShopDetail(userId) {
+  // 更新 URL
+  updateUrl({ shop: userId });
+  
   currentView = 'shopDetail';
   document.getElementById('mainContent').innerHTML = `<div class="grid" id="itemGrid">加载中...</div>`;
 
@@ -600,6 +642,9 @@ async function deleteItem(id) {
 // 显示商品详情
 async function showItemDetail(id) {
     try {
+        // 更新 URL
+        updateUrl({ item: id });
+        
         // 获取商品详情
         const response = await fetch(`${API_BASE}/items`);
         const items = await response.json();
@@ -616,11 +661,13 @@ async function showItemDetail(id) {
             ? 'https://images.unsplash.com/photo-1603351154351-5cf2330927f0?w=400'
             : item.image;
         
+        const shareUrl = `https://secondhand-shop-prod.vercel.app/?item=${id}`;
+        
         updateMetaTags(
             `${item.name} - $${item.price} | 东区集市`,
             `${item.desc.substring(0, 100)}... | ${item.condition} | ${item.category}`,
             ogImage,
-            `https://secondhand-shop-prod.vercel.app`
+            shareUrl
         );
         
         // 获取店铺信息
