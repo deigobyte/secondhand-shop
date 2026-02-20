@@ -172,12 +172,6 @@ async function showShopDetail(userId) {
     document.getElementById('mainContent').innerHTML = '<div class="error">加载失败</div>';
   }
 }
-        
-        renderItems(data.items, 'itemGrid', false);
-    } catch (e) {
-        document.getElementById('mainContent').innerHTML = '<div class="error">加载失败</div>';
-    }
-}
 
 // 显示登录页
 function showLogin() {
