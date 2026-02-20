@@ -40,7 +40,7 @@ function renderHeader() {
     
     header.innerHTML = `
         <div class="header-left">
-            <h1 onclick="showHome()">🏪 二手集市</h1>
+            <h1 onclick="showHome()">🏪 东区集市</h1>
         </div>
         <div class="header-right">
             <button onclick="showShops()" class="nav-btn">🏪 逛店铺</button>
@@ -61,7 +61,7 @@ function showHome() {
     currentView = 'home';
     document.getElementById('mainContent').innerHTML = `
         <div class="welcome-banner">
-            <h2>🏪 欢迎来到二手集市</h2>
+            <h2>🏪 欢迎来到东区集市</h2>
             <p>每个人都可以开店卖货</p>
             <div class="hero-buttons">
                 <button onclick="showRegister()" class="cta-button">
@@ -613,9 +613,9 @@ async function showItemDetail(id) {
                     </div>
                     
                     <div class="item-detail-actions">
-                        <button onclick="contactSeller('${item.userId}', '${item.name}')" class="btn-contact">
-                            💬 联系卖家
-                        </button>
+                        <a href="weixin://" class="btn-contact">
+                            💬 微信联系卖家
+                        </a>
                     </div>
                 </div>
             </div>
