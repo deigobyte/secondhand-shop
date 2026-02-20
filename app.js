@@ -13,7 +13,7 @@ async function init() {
         await loadCurrentUser();
     }
     renderHeader();
-    loadItems();
+    showHome(); // 先渲染首页，再加载商品
 }
 
 // 加载当前用户
