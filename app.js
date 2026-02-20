@@ -475,9 +475,78 @@ async function deleteItem(id) {
 }
 
 // 显示商品详情
-function showItemDetail(id) {
-    // 简化版，可以扩展
-    console.log('查看商品:', id);
+async function showItemDetail(id) {
+    try {
+        // 获取商品详情
+        const response = await fetch(`${API_BASE}/items`);
+        const items = await response.json();
+        const item = items.find(i => i._id === id);
+        
+        if (!item) {
+            alert('商品不存在');
+            return;
+        }
+        
+        // 获取店铺信息
+        const shopResponse = await fetch(`${API_BASE}/shops`);
+        const shops = await shopResponse.json();
+        const shop = shops.find(s => s._id === item.userId);
+        
+        currentView = 'itemDetail';
+        document.getElementById('mainContent').innerHTML = `
+            <div class="item-detail">
+                <button onclick="showHome()" class="back-btn">← 返回</button>
+                
+                <div class="item-detail-image">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                
+                <div class="item-detail-info">
+                    <div class="item-detail-price">¥${item.price}</div>
+                    <h1 class="item-detail-name">${item.name}</h1>
+                    
+                    <div class="item-detail-meta">
+                        <span class="condition-tag">${item.condition}</span>
+                        <span class="category-tag">${item.category}</span>
+                    </div>
+                    
+                    ${shop ? `
+                    <div class="shop-info-bar" onclick="showShopDetail('${shop._id}')">
+                        <div class="shop-icon small">🏪</div>
+                        <div class="shop-info-text">
+                            <div class="shop-name-small">${shop.shopName}</div>
+                            <div class="shop-view">查看店铺 →</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="item-detail-section">
+                        <h3>商品描述</h3>
+                        <div class="item-detail-desc">${item.desc.replace(/\n/g, '<br>')}</div>
+                    </div>
+                    
+                    <div class="item-detail-section">
+                        <h3>购买方式</h3>
+                        <p class="contact-info">💬 点击下方按钮联系卖家</p>
+                    </div>
+                    
+                    <div class="item-detail-actions">
+                        <button onclick="contactSeller('${item.userId}', '${item.name}')" class="btn-contact">
+                            💬 联系卖家
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error('加载商品详情失败:', e);
+        alert('加载失败');
+    }
+}
+
+// 联系卖家
+function contactSeller(userId, itemName) {
+    alert('联系功能开发中...\n\n商品: ' + itemName);
 }
 
 // 编辑商品
